@@ -1,0 +1,200 @@
+/* ============================================================
+   COURSES — Dark editorial overlay cards
+   ============================================================ */
+
+.courses {
+  padding: 3.5rem 0;
+  background: #141414;
+  position: relative;
+  overflow: hidden;
+}
+
+.courses::before {
+  content: '';
+  position: absolute;
+  top: 1.8rem;
+  left: 1.8rem;
+  width: 36px;
+  height: 36px;
+  border-top: 1px solid rgba(201, 150, 122, 0.25);
+  border-left: 1px solid rgba(201, 150, 122, 0.25);
+  pointer-events: none;
+}
+
+.courses::after {
+  content: '';
+  position: absolute;
+  bottom: 1.8rem;
+  right: 1.8rem;
+  width: 36px;
+  height: 36px;
+  border-bottom: 1px solid rgba(201, 150, 122, 0.25);
+  border-right: 1px solid rgba(201, 150, 122, 0.25);
+  pointer-events: none;
+}
+
+/* Section title override for dark background */
+.courses .section-title {
+  color: #ffffff;
+}
+
+.courses .section-title::after {
+  background: linear-gradient(90deg, transparent, #C9967A 30%, #C9967A 70%, transparent);
+}
+
+.carousel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  width: 100%;
+}
+
+.carousel-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  order: -1;
+}
+
+.carousel {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 1000px;
+}
+
+/* ── Each card ── */
+.carousel-item {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.carousel-item.hidden {
+  display: none;
+}
+
+/* Permanent dark gradient overlay */
+.carousel-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.25) 55%, transparent 85%);
+  z-index: 1;
+  transition: background 0.4s ease;
+  pointer-events: none;
+}
+
+.carousel-item:hover::before {
+  background: linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.45) 60%, rgba(0,0,0,0.1) 100%);
+}
+
+.course-image-wrapper {
+  position: absolute;
+  inset: 0;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.carousel-item:hover .course-image-wrapper {
+  box-shadow: none;
+}
+
+.course-image-wrapper::after {
+  display: none;
+}
+
+.course-image-placeholder {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+}
+
+.course-image-uploaded {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.55s ease;
+}
+
+.carousel-item:hover .course-image-uploaded {
+  transform: scale(1.05);
+}
+
+/* Course name overlaid on image */
+.course-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 1.5rem 1.75rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.2rem;
+  font-weight: 400;
+  font-style: italic;
+  color: #ffffff;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0.2px;
+  transition: letter-spacing 0.3s ease;
+}
+
+.carousel-item:hover .course-name {
+  letter-spacing: 0.5px;
+}
+
+.course-1 { background: linear-gradient(160deg, #2C2822 0%, #1A1714 100%); }
+.course-2 { background: linear-gradient(160deg, #2C2020 0%, #1A1212 100%); }
+.course-3 { background: linear-gradient(160deg, #20222C 0%, #12141A 100%); }
+.course-4 { background: linear-gradient(160deg, #202C20 0%, #121A12 100%); }
+
+.carousel-arrow {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+}
+
+.carousel-arrow:hover {
+  background-color: #C9967A;
+  border-color: #C9967A;
+  color: #ffffff;
+}
+
+@media (min-width: 769px) {
+  .carousel-controls {
+    order: 0;
+    justify-content: flex-end;
+    padding: 0 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .courses {
+    padding: 2.5rem 0;
+  }
+
+  .carousel {
+    grid-template-columns: 1fr;
+  }
+
+  .carousel-item {
+    aspect-ratio: 2/3;
+  }
+}

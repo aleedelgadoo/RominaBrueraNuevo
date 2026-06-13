@@ -1,0 +1,71 @@
+.app {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+section {
+  width: 100%;
+}
+
+.announcement-strip {
+  background: linear-gradient(90deg, #EEB8B2 0%, #F5C8C4 40%, #F5C8C4 60%, #EEB8B2 100%);
+  padding: 0.85rem 2rem;
+  text-align: center;
+  width: 100%;
+  border-top: 1px solid rgba(160, 80, 70, 0.12);
+  border-bottom: 1px solid rgba(160, 80, 70, 0.12);
+}
+
+.announcement-strip span {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  letter-spacing: 0.5px;
+  color: #7A3D35;
+}
+
+.section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.2rem;
+  font-weight: 300;
+  text-align: center;
+  color: #262626;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  margin-bottom: 2.5rem;
+  line-height: 1.1;
+  position: relative;
+  padding-bottom: 1.2rem;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C9967A 30%, #C9967A 70%, transparent);
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.6rem;
+    letter-spacing: 4px;
+    margin-bottom: 2rem;
+  }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+button {
+  font-family: 'DM Sans', inherit;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}

@@ -1,0 +1,115 @@
+.contact {
+  padding: 3rem 2rem 3.5rem;
+  background: #1a1a1a;
+  position: relative;
+}
+
+.contact-header-bar {
+  max-width: 1100px;
+  margin: 0 auto 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.contact-tag {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
+.contact-tag-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.contact-items {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.5rem 2.5rem;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.25s ease, border-color 0.25s ease;
+  flex: 1;
+  min-width: 200px;
+}
+
+.contact-item:hover {
+  background: rgba(201, 150, 122, 0.08);
+  border-color: rgba(201, 150, 122, 0.3);
+}
+
+.contact-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 150, 122, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #C9967A;
+  flex-shrink: 0;
+  transition: background 0.25s ease;
+}
+
+.contact-item:hover .contact-icon {
+  background: #C9967A;
+  color: #ffffff;
+  border-color: #C9967A;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.contact-label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.contact-value {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+  word-break: break-all;
+}
+
+@media (max-width: 768px) {
+  .contact {
+    padding: 2.5rem 1.25rem 3rem;
+  }
+
+  .contact-items {
+    flex-direction: column;
+  }
+
+  .contact-item {
+    padding: 1.2rem 1.5rem;
+    flex: none;
+    min-width: 0;
+  }
+
+  .contact-value {
+    font-size: 0.95rem;
+  }
+}

@@ -1,0 +1,143 @@
+/* ============================================================
+   FAQ — Two-column editorial layout
+   ============================================================ */
+
+.faq {
+  padding: 4rem 2rem;
+  background: #ffffff;
+}
+
+.faq-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 5rem;
+  align-items: start;
+}
+
+/* ── Left column: sticky header ── */
+.faq-header {
+  position: sticky;
+  top: 100px;
+}
+
+.faq-eyebrow {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 3.5px;
+  text-transform: uppercase;
+  color: #C9967A;
+  margin-bottom: 1rem;
+}
+
+.faq-section-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  line-height: 1.2;
+  letter-spacing: -0.3px;
+  margin-bottom: 1.5rem;
+}
+
+.faq-header-accent {
+  width: 32px;
+  height: 2px;
+  background: #C9967A;
+}
+
+/* ── Right column: accordion ── */
+.faq-content {
+  padding-top: 0.15rem;
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.faq-item:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.25rem;
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #2a2a2a;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  line-height: 1.5;
+}
+
+.faq-question:hover {
+  color: #C9967A;
+}
+
+.faq-question.open {
+  color: #C9967A;
+}
+
+.faq-icon {
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: #C9967A;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  line-height: 1;
+  margin-top: 0.1rem;
+}
+
+.faq-answer {
+  padding: 0 0 1.5rem;
+  animation: faqFadeIn 0.2s ease;
+}
+
+.faq-answer p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  color: #5a5a5a;
+  line-height: 1.82;
+  margin: 0;
+}
+
+@keyframes faqFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .faq {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .faq-wrapper {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .faq-header {
+    position: static;
+  }
+
+  .faq-section-title {
+    font-size: 1.5rem;
+  }
+
+  .faq-question {
+    padding: 1.25rem 0;
+    font-size: 0.82rem;
+  }
+}

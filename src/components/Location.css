@@ -1,0 +1,149 @@
+.location {
+  padding: 3rem 2rem 3.5rem;
+  background: #ffffff;
+}
+
+.location-header-bar {
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.location-tag {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+
+.location-tag-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* ── Main grid ── */
+.location-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  height: 380px;
+}
+
+/* ── Map iframe ── */
+.location-map {
+  position: relative;
+  overflow: hidden;
+}
+
+.location-map iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Right side: photo + address ── */
+.location-side {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.location-photo-wrap {
+  flex: 1;
+  overflow: hidden;
+}
+
+.location-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.location-photo:hover {
+  transform: scale(1.03);
+}
+
+.location-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #E8DDD5 0%, #C9B09A 100%);
+}
+
+/* ── Address bar ── */
+.location-address {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #F9F8F6;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  flex-shrink: 0;
+}
+
+.location-pin {
+  color: #C9967A;
+  flex-shrink: 0;
+}
+
+.location-address-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  color: #3a3a3a;
+  margin: 0;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .location {
+    padding: 2rem 1.25rem 2.5rem;
+  }
+
+  .location-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .location-map {
+    height: 240px;
+    position: relative;
+  }
+
+  .location-map iframe {
+    position: absolute;
+    inset: 0;
+  }
+
+  .location-side {
+    border-left: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .location-photo-wrap {
+    height: 200px;
+    flex: none;
+  }
+
+  .location-address {
+    padding: 0.9rem 1.25rem;
+  }
+
+  .location-address-text {
+    font-size: 0.88rem;
+  }
+}

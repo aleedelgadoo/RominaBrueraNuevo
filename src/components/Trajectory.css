@@ -1,0 +1,217 @@
+.trajectory-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+}
+
+/* ── Dark hero header ── */
+.trajectory-hero {
+  background: #141414;
+  padding: 5rem 3rem 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+}
+
+/* When cover image is present */
+.trajectory-hero.has-cover {
+  padding: 0;
+  min-height: 480px;
+}
+
+/* ── Cover image ── */
+.traj-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.traj-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.traj-cover-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.52) 0%,
+    rgba(0, 0, 0, 0.65) 60%,
+    rgba(0, 0, 0, 0.75) 100%
+  );
+}
+
+/* ── Hero content (overlaid on photo or alone) ── */
+.traj-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5rem 3rem 4rem;
+  width: 100%;
+}
+
+.traj-back-button {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  margin-bottom: 2.5rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: color 0.25s ease;
+}
+
+.traj-back-button:hover {
+  color: #C9967A;
+}
+
+.traj-eyebrow {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #C9967A;
+  margin-bottom: 1rem;
+}
+
+.traj-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 3.2rem;
+  font-weight: 400;
+  color: #ffffff;
+  margin: 0 0 1.5rem 0;
+  letter-spacing: 2px;
+  line-height: 1.1;
+}
+
+.traj-accent {
+  width: 48px;
+  height: 1px;
+  background: #C9967A;
+}
+
+/* ── Body: timeline list ── */
+.trajectory-body {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+}
+
+.traj-empty {
+  font-family: 'DM Sans', sans-serif;
+  color: #999;
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.traj-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Each item ── */
+.traj-item {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 2rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  align-items: start;
+}
+
+.traj-item:first-child {
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.traj-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.4rem;
+  font-weight: 400;
+  font-style: italic;
+  color: rgba(201, 150, 122, 0.35);
+  line-height: 1;
+  padding-top: 0.2rem;
+  user-select: none;
+}
+
+.traj-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.traj-item-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  margin: 0;
+  letter-spacing: 0.3px;
+  line-height: 1.25;
+}
+
+.traj-item-desc {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  color: #5a5a5a;
+  line-height: 1.8;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .trajectory-hero {
+    padding: 3.5rem 1.5rem 3rem;
+    min-height: 240px;
+  }
+
+  .trajectory-hero.has-cover {
+    padding: 0;
+    min-height: 360px;
+  }
+
+  .traj-hero-content {
+    padding: 3.5rem 1.5rem 3rem;
+  }
+
+  .traj-title {
+    font-size: 2.2rem;
+  }
+
+  .trajectory-body {
+    padding: 2.5rem 1.25rem 4rem;
+  }
+
+  .traj-item {
+    grid-template-columns: 48px 1fr;
+    gap: 1.25rem;
+    padding: 2rem 0;
+  }
+
+  .traj-num {
+    font-size: 1.8rem;
+  }
+
+  .traj-item-title {
+    font-size: 1.1rem;
+  }
+}
