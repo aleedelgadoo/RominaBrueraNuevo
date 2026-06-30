@@ -296,8 +296,6 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   const markAsChanged = () => setHasChanges(true)
 
   const [uploading, setUploading] = useState(false)
-  const [reoptimizing, setReoptimizing] = useState(false)
-  const [reoptimizeProgress, setReoptimizeProgress] = useState({ done: 0, total: 0 })
 
   const resizeToBlob = (file: Blob, maxWidth = 1300, quality = 0.9): Promise<Blob> => {
     const isPng = file.type === 'image/png'
@@ -381,117 +379,6 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     }
   }
 
-  const getImageWidth = (blob: Blob): Promise<number> => {
-    return new Promise((resolve, reject) => {
-      const objectUrl = URL.createObjectURL(blob)
-      const img = new Image()
-      img.onload = () => { resolve(img.width); URL.revokeObjectURL(objectUrl) }
-      img.onerror = reject
-      img.src = objectUrl
-    })
-  }
-
-  // Re-encoding an already-compressed image loses a bit of quality each time (like re-saving
-  // a JPEG), so in "shrink" mode (forceReencode=false) a photo already at/under its target size
-  // is left untouched. The quality-boost pass sets forceReencode=true since its whole point is to
-  // re-encode every photo at a higher quality, even if its dimensions don't need to change.
-  const reoptimizeImage = async (url: string, maxWidth: number, quality: number, forceReencode: boolean): Promise<string> => {
-    const res = await fetch(url)
-    const blob = await res.blob()
-    const width = await getImageWidth(blob)
-    if (!forceReencode && width <= maxWidth) return url
-    const resized = await resizeToBlob(blob, maxWidth, quality)
-    const ext = resized.type === 'image/png' ? 'png' : 'webp'
-    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
-    return uploadImage(resized, fileName)
-  }
-
-  const buildImageTasks = (data: any) => {
-    const tasks: Array<{ maxWidth: number; get: () => string | undefined; set: (url: string) => void }> = []
-    const addTask = (maxWidth: number, get: () => string | undefined, set: (url: string) => void) => {
-      if (get()) tasks.push({ maxWidth, get, set })
-    }
-    // Hero photos also get a small mobile variant generated from the same source image
-    const addHeroTask = (field: 'image' | 'image2' | 'image3') => {
-      if (data.hero[field]) {
-        const sourceUrl = data.hero[field]
-        tasks.push({ maxWidth: 1800, get: () => sourceUrl, set: (url: string) => { data.hero[field] = url } })
-        tasks.push({ maxWidth: 750, get: () => sourceUrl, set: (url: string) => { data.hero[`${field}Mobile`] = url } })
-      }
-    }
-
-    addHeroTask('image')
-    addHeroTask('image2')
-    addHeroTask('image3')
-    addTask(1300, () => data.about.image, (url) => { data.about.image = url })
-    addTask(600, () => data.logo, (url) => { data.logo = url })
-    addTask(1800, () => data.trajectoryCover, (url) => { data.trajectoryCover = url })
-    addTask(1200, () => data.location.photo, (url) => { data.location.photo = url })
-    data.portfolio.forEach((item: any) => addTask(1000, () => item.image, (url) => { item.image = url }))
-    data.testimonials.forEach((t: any) => addTask(400, () => t.photo, (url) => { t.photo = url }))
-    data.services.forEach((service: any) => {
-      addTask(1300, () => service.image, (url) => { service.image = url })
-      service.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
-      service.subServices.forEach((sub: any) => {
-        addTask(1300, () => sub.image, (url) => { sub.image = url })
-        sub.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
-      })
-    })
-    data.courses.forEach((course: any) => {
-      addTask(1300, () => course.image, (url) => { course.image = url })
-      course.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
-    })
-    return tasks
-  }
-
-  const runImagePass = async (opts: { quality: number; forceReencode: boolean; confirmMsg: string; successVerb: string }) => {
-    if (!confirm(opts.confirmMsg)) return
-
-    const data: any = JSON.parse(JSON.stringify(pageData))
-    const tasks = buildImageTasks(data)
-
-    setReoptimizing(true)
-    setReoptimizeProgress({ done: 0, total: tasks.length })
-    let failures = 0
-    for (const task of tasks) {
-      try {
-        const newUrl = await reoptimizeImage(task.get()!, task.maxWidth, opts.quality, opts.forceReencode)
-        task.set(newUrl)
-      } catch (err) {
-        failures++
-        console.error('No se pudo procesar', task.get(), err)
-      }
-      setReoptimizeProgress((prev) => ({ ...prev, done: prev.done + 1 }))
-    }
-
-    try {
-      setPageData(data)
-      await savePageData(data)
-      onDataSaved()
-      alert(failures > 0
-        ? `Listo. Se ${opts.successVerb} ${tasks.length - failures} de ${tasks.length} fotos (${failures} fallaron y quedaron como estaban).`
-        : `Listo. Se ${opts.successVerb} las ${tasks.length} fotos.`)
-    } catch (err: any) {
-      alert('Las fotos se procesaron pero hubo un error al guardar: ' + (err?.message || JSON.stringify(err)))
-    } finally {
-      setReoptimizing(false)
-    }
-  }
-
-  const handleReoptimizeAll = () => runImagePass({
-    quality: 0.9,
-    forceReencode: false,
-    confirmMsg: 'Esto comprime las fotos que todavía sean muy pesadas (y genera versiones livianas para celular en el Hero) para que el sitio cargue más rápido. Las fotos que ya estén livianas no se tocan. Si una foto ya quedó chica/borrosa de una optimización anterior, este botón NO le devuelve resolución: para eso hay que volver a subirla desde tu compu. ¿Continuar?',
-    successVerb: 'optimizaron',
-  })
-
-  const handleBoostQuality = () => runImagePass({
-    quality: 0.96,
-    forceReencode: true,
-    confirmMsg: 'Esto vuelve a procesar todas las fotos con más calidad (van a pesar más, sin cambiar su tamaño). No recupera resolución que ya se haya perdido al achicarlas, pero reduce los artefactos de compresión. Puede tardar varios minutos. ¿Continuar?',
-    successVerb: 'mejoraron en calidad',
-  })
-
   if (!isAuthenticated) {
     return (
       <div className="admin-login">
@@ -534,12 +421,6 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     <div className="admin-panel">
       <div className="admin-header">
         <h1>Panel de Control - Romina Bruera</h1>
-        <button onClick={handleReoptimizeAll} className="logout-button" disabled={reoptimizing} style={{ marginRight: '0.5rem' }}>
-          {reoptimizing ? `Procesando ${reoptimizeProgress.done}/${reoptimizeProgress.total}...` : '⚡ Optimizar fotos existentes'}
-        </button>
-        <button onClick={handleBoostQuality} className="logout-button" disabled={reoptimizing} style={{ marginRight: '0.5rem' }}>
-          {reoptimizing ? `Procesando ${reoptimizeProgress.done}/${reoptimizeProgress.total}...` : '✨ Subir calidad'}
-        </button>
         <button onClick={onLogout} className="logout-button">
           Cerrar Sesión
         </button>
