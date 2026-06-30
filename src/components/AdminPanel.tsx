@@ -381,9 +381,24 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     }
   }
 
+  const getImageWidth = (blob: Blob): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(blob)
+      const img = new Image()
+      img.onload = () => { resolve(img.width); URL.revokeObjectURL(objectUrl) }
+      img.onerror = reject
+      img.src = objectUrl
+    })
+  }
+
+  // Re-encoding an already-compressed image loses a bit of quality each time (like re-saving
+  // a JPEG), so if a photo is already at/under its target size we leave it untouched. This makes
+  // it safe to run "Optimizar fotos existentes" more than once without degrading photos further.
   const reoptimizeImage = async (url: string, maxWidth: number): Promise<string> => {
     const res = await fetch(url)
     const blob = await res.blob()
+    const width = await getImageWidth(blob)
+    if (width <= maxWidth) return url
     const resized = await resizeToBlob(blob, maxWidth)
     const ext = resized.type === 'image/png' ? 'png' : 'webp'
     const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
