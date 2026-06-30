@@ -297,7 +297,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
 
   const [uploading, setUploading] = useState(false)
 
-  const resizeToBlob = (file: Blob, maxWidth = 1300, quality = 0.9): Promise<Blob> => {
+  const resizeToBlob = (file: Blob, maxWidth = 1300, quality = 1): Promise<Blob> => {
     const isPng = file.type === 'image/png'
     const mimeType = isPng ? 'image/png' : 'image/webp'
     return new Promise((resolve) => {
