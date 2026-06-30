@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { usePrefetchImages } from '../hooks/usePrefetchImages'
 import './Services.css'
 
 interface Service {
@@ -26,8 +25,6 @@ const Services = ({ onServiceClick, pageData }: ServicesProps) => {
   const [columns, setColumns] = useState(() => window.innerWidth <= 768 ? 1 : 2)
 
   const services: Service[] = pageData?.services ?? DEFAULT_SERVICES
-
-  usePrefetchImages(services.map((s) => s.image))
 
   useEffect(() => {
     const onResize = () => setColumns(window.innerWidth <= 768 ? 1 : 2)

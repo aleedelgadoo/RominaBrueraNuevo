@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { usePrefetchImages } from '../hooks/usePrefetchImages'
 import './Courses.css'
 
 interface Course {
@@ -25,8 +24,6 @@ const Courses = ({ onCourseClick, pageData }: CoursesProps) => {
   const [columns, setColumns] = useState(() => window.innerWidth <= 768 ? 1 : 2)
 
   const courses: Course[] = pageData?.courses ?? DEFAULT_COURSES
-
-  usePrefetchImages(courses.map((c) => c.image))
 
   useEffect(() => {
     const onResize = () => setColumns(window.innerWidth <= 768 ? 1 : 2)

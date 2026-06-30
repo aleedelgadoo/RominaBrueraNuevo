@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { usePrefetchImages } from '../hooks/usePrefetchImages'
 import './Testimonials.css'
 
 interface Testimonial {
@@ -34,8 +33,6 @@ const Testimonials = ({ pageData }: TestimonialsProps) => {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const testimonials: Testimonial[] = pageData?.testimonials ?? DEFAULT_TESTIMONIALS
-
-  usePrefetchImages(testimonials.map((t) => (t as any).photo))
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))

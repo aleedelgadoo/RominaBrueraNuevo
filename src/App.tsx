@@ -11,6 +11,8 @@ import Location from './components/Location'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import { loadPageData } from './utils/storage'
+import { collectImageUrls } from './utils/collectImageUrls'
+import { usePrefetchImages } from './hooks/usePrefetchImages'
 import './App.css'
 
 const ServiceDetail = lazy(() => import('./components/ServiceDetail'))
@@ -37,6 +39,11 @@ function App() {
   }
 
   useEffect(() => { refreshData() }, [])
+
+  // Once the home page's critical content has loaded, warm the cache for every other
+  // photo on the site (services, courses, portfolios, subservices) in the background,
+  // so navigating into a service/course/portfolio page never has to wait on images.
+  usePrefetchImages(collectImageUrls(pageData))
 
   useEffect(() => {
     if (pageData?.logo) {
