@@ -14,7 +14,7 @@ const Footer = ({ onAdminClick, pageData }: FooterProps) => {
       <div className="footer-container">
         <div className="footer-logo">
           {logo ? (
-            <img src={logo} alt="Logo" className="footer-logo-image" />
+            <img src={logo} alt="Logo" className="footer-logo-image" loading="lazy" decoding="async" />
           ) : (
             <span className="logo-text">RB</span>
           )}

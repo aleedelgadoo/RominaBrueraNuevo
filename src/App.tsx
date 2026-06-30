@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense, lazy } from 'react'
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import AboutMe from './components/AboutMe'
@@ -10,14 +10,15 @@ import Portfolio from './components/Portfolio'
 import Location from './components/Location'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
-import ServiceDetail from './components/ServiceDetail'
-import SubServiceDetail from './components/SubServiceDetail'
-import CourseDetail from './components/CourseDetail'
-import AdminPanel from './components/AdminPanel'
-import Trajectory from './components/Trajectory'
-import PortfolioPage from './components/PortfolioPage'
 import { loadPageData } from './utils/storage'
 import './App.css'
+
+const ServiceDetail = lazy(() => import('./components/ServiceDetail'))
+const SubServiceDetail = lazy(() => import('./components/SubServiceDetail'))
+const CourseDetail = lazy(() => import('./components/CourseDetail'))
+const AdminPanel = lazy(() => import('./components/AdminPanel'))
+const Trajectory = lazy(() => import('./components/Trajectory'))
+const PortfolioPage = lazy(() => import('./components/PortfolioPage'))
 
 type Page = 'home' | 'service' | 'subservice' | 'course' | 'trajectory' | 'portfolio' | 'admin'
 
@@ -128,46 +129,64 @@ function App() {
   }
 
   if (currentPage === 'trajectory') {
-    return <Trajectory onClose={() => history.back()} pageData={pageData} />
+    return (
+      <Suspense fallback={null}>
+        <Trajectory onClose={() => history.back()} pageData={pageData} />
+      </Suspense>
+    )
   }
 
   if (currentPage === 'portfolio') {
-    return <PortfolioPage onClose={() => history.back()} pageData={pageData} />
+    return (
+      <Suspense fallback={null}>
+        <PortfolioPage onClose={() => history.back()} pageData={pageData} />
+      </Suspense>
+    )
   }
 
   if (currentPage === 'admin' && isLoggedIn) {
-    return <AdminPanel onLogout={handleAdminLogout} onDataSaved={handleDataSaved} />
+    return (
+      <Suspense fallback={null}>
+        <AdminPanel onLogout={handleAdminLogout} onDataSaved={handleDataSaved} />
+      </Suspense>
+    )
   }
 
   if (currentPage === 'subservice' && selectedSubServiceId && selectedServiceId) {
     return (
-      <SubServiceDetail
-        subServiceId={selectedSubServiceId}
-        parentServiceId={selectedServiceId}
-        onClose={handleCloseDetail}
-        onGoHome={handleGoHome}
-        onPortfolioClick={handlePortfolioClick}
-        pageData={pageData}
-      />
+      <Suspense fallback={null}>
+        <SubServiceDetail
+          subServiceId={selectedSubServiceId}
+          parentServiceId={selectedServiceId}
+          onClose={handleCloseDetail}
+          onGoHome={handleGoHome}
+          onPortfolioClick={handlePortfolioClick}
+          pageData={pageData}
+        />
+      </Suspense>
     )
   }
 
   if (currentPage === 'service' && selectedServiceId) {
     return (
-      <ServiceDetail
-        serviceId={selectedServiceId}
-        onClose={handleCloseDetail}
-        onSubServiceClick={handleSubServiceClick}
-        onGoHome={handleGoHome}
-        onPortfolioClick={handlePortfolioClick}
-        pageData={pageData}
-      />
+      <Suspense fallback={null}>
+        <ServiceDetail
+          serviceId={selectedServiceId}
+          onClose={handleCloseDetail}
+          onSubServiceClick={handleSubServiceClick}
+          onGoHome={handleGoHome}
+          onPortfolioClick={handlePortfolioClick}
+          pageData={pageData}
+        />
+      </Suspense>
     )
   }
 
   if (currentPage === 'course' && selectedCourseId) {
     return (
-      <CourseDetail courseId={selectedCourseId} onClose={handleCloseCourseDetail} onGoHome={handleGoHome} onPortfolioClick={handlePortfolioClick} pageData={pageData} />
+      <Suspense fallback={null}>
+        <CourseDetail courseId={selectedCourseId} onClose={handleCloseCourseDetail} onGoHome={handleGoHome} onPortfolioClick={handlePortfolioClick} pageData={pageData} />
+      </Suspense>
     )
   }
 

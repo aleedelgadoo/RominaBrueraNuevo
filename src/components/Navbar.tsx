@@ -56,7 +56,7 @@ const Navbar = ({ pageData, onNavClick, onGoHome, onPortfolioClick }: NavbarProp
     <nav className="navbar">
       <div className="navbar-logo-top navbar-brand-clickable" onClick={handleBrandClick} role="button" aria-label="Ir al inicio">
         {pageData?.logo && (
-          <img src={pageData.logo} alt="Logo" className="logo-image" />
+          <img src={pageData.logo} alt="Logo" className="logo-image" loading="eager" decoding="async" />
         )}
       </div>
       <div className="navbar-brand-title navbar-brand-clickable" onClick={handleBrandClick} role="button">

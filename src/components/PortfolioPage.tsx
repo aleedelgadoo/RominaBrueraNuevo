@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Lightbox from './Lightbox'
+import LazyBackground from './LazyBackground'
 import './PortfolioPage.css'
 
 interface PortfolioPageProps {
@@ -86,10 +87,10 @@ const PortfolioPage = ({ onClose, pageData }: PortfolioPageProps) => {
               <div className="pp-grid">
                 {section.photos.map((photo) => (
                   photo.image ? (
-                    <div
+                    <LazyBackground
                       key={photo.id}
                       className="pp-photo"
-                      style={{ backgroundImage: `url(${photo.image})` }}
+                      src={photo.image}
                       onClick={() => setLightboxSrc(photo.image)}
                     />
                   ) : null

@@ -293,10 +293,12 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   const markAsChanged = () => setHasChanges(true)
 
   const [uploading, setUploading] = useState(false)
+  const [reoptimizing, setReoptimizing] = useState(false)
+  const [reoptimizeProgress, setReoptimizeProgress] = useState({ done: 0, total: 0 })
 
-  const resizeToBlob = (file: File, maxWidth = 1200): Promise<Blob> => {
+  const resizeToBlob = (file: Blob, maxWidth = 1100, quality = 0.82): Promise<Blob> => {
     const isPng = file.type === 'image/png'
-    const mimeType = isPng ? 'image/png' : 'image/jpeg'
+    const mimeType = isPng ? 'image/png' : 'image/webp'
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (e) => {
@@ -311,7 +313,8 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
           canvas.width = width
           canvas.height = height
           canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
-          canvas.toBlob((blob) => resolve(blob!), mimeType, 1)
+          // PNG stays lossless (transparency), JPEG gets real compression instead of quality 1 (near-uncompressed)
+          canvas.toBlob((blob) => resolve(blob!), mimeType, isPng ? undefined : quality)
         }
         img.src = e.target?.result as string
       }
@@ -319,28 +322,13 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     })
   }
 
-  const uploadDirect = async (file: File, callback: (url: string) => void) => {
-    setUploading(true)
-    try {
-      const ext = file.name.split('.').pop() || 'png'
-      const fileName = `${Date.now()}_${file.name.replace(/[^a-z0-9]/gi, '_')}.${ext}`
-      const url = await uploadImage(file, fileName)
-      callback(url)
-      markAsChanged()
-    } catch (err: any) {
-      alert('Error al subir: ' + (err?.message || JSON.stringify(err)))
-    } finally {
-      setUploading(false)
-    }
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, callback: (url: string) => void, maxWidth = 1100) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    resizeToBlob(file).then(async (blob) => {
+    resizeToBlob(file, maxWidth).then(async (blob) => {
       try {
-        const ext = file.type === 'image/png' ? 'png' : 'jpg'
+        const ext = file.type === 'image/png' ? 'png' : 'webp'
         const fileName = `${Date.now()}_${file.name.replace(/[^a-z0-9]/gi, '_')}.${ext}`
         const url = await uploadImage(blob, fileName)
         callback(url)
@@ -362,6 +350,74 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
       alert('Cambios guardados exitosamente')
     } catch (err: any) {
       alert('Error al guardar: ' + (err?.message || JSON.stringify(err)))
+    }
+  }
+
+  const reoptimizeImage = async (url: string, maxWidth: number): Promise<string> => {
+    const res = await fetch(url)
+    const blob = await res.blob()
+    const resized = await resizeToBlob(blob, maxWidth)
+    const ext = resized.type === 'image/png' ? 'png' : 'webp'
+    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+    return uploadImage(resized, fileName)
+  }
+
+  const handleReoptimizeAll = async () => {
+    if (!confirm('Esto vuelve a comprimir todas las fotos ya subidas para que el sitio cargue más rápido. Puede tardar varios minutos según la cantidad de fotos. ¿Continuar?')) return
+
+    const data: any = JSON.parse(JSON.stringify(pageData))
+    const tasks: Array<{ maxWidth: number; get: () => string | undefined; set: (url: string) => void }> = []
+    const addTask = (maxWidth: number, get: () => string | undefined, set: (url: string) => void) => {
+      if (get()) tasks.push({ maxWidth, get, set })
+    }
+
+    addTask(1600, () => data.hero.image, (url) => { data.hero.image = url })
+    addTask(1600, () => data.hero.image2, (url) => { data.hero.image2 = url })
+    addTask(1600, () => data.hero.image3, (url) => { data.hero.image3 = url })
+    addTask(1100, () => data.about.image, (url) => { data.about.image = url })
+    addTask(400, () => data.logo, (url) => { data.logo = url })
+    addTask(1600, () => data.trajectoryCover, (url) => { data.trajectoryCover = url })
+    addTask(1000, () => data.location.photo, (url) => { data.location.photo = url })
+    data.portfolio.forEach((item: any) => addTask(1100, () => item.image, (url) => { item.image = url }))
+    data.testimonials.forEach((t: any) => addTask(300, () => t.photo, (url) => { t.photo = url }))
+    data.services.forEach((service: any) => {
+      addTask(1100, () => service.image, (url) => { service.image = url })
+      service.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+      service.subServices.forEach((sub: any) => {
+        addTask(1100, () => sub.image, (url) => { sub.image = url })
+        sub.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+      })
+    })
+    data.courses.forEach((course: any) => {
+      addTask(1100, () => course.image, (url) => { course.image = url })
+      course.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+    })
+
+    setReoptimizing(true)
+    setReoptimizeProgress({ done: 0, total: tasks.length })
+    let failures = 0
+    for (const task of tasks) {
+      try {
+        const newUrl = await reoptimizeImage(task.get()!, task.maxWidth)
+        task.set(newUrl)
+      } catch (err) {
+        failures++
+        console.error('No se pudo optimizar', task.get(), err)
+      }
+      setReoptimizeProgress((prev) => ({ ...prev, done: prev.done + 1 }))
+    }
+
+    try {
+      setPageData(data)
+      await savePageData(data)
+      onDataSaved()
+      alert(failures > 0
+        ? `Listo. Se optimizaron ${tasks.length - failures} de ${tasks.length} fotos (${failures} fallaron y quedaron como estaban).`
+        : `Listo. Se optimizaron las ${tasks.length} fotos.`)
+    } catch (err: any) {
+      alert('Las fotos se optimizaron pero hubo un error al guardar: ' + (err?.message || JSON.stringify(err)))
+    } finally {
+      setReoptimizing(false)
     }
   }
 
@@ -407,6 +463,9 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     <div className="admin-panel">
       <div className="admin-header">
         <h1>Panel de Control - Romina Bruera</h1>
+        <button onClick={handleReoptimizeAll} className="logout-button" disabled={reoptimizing} style={{ marginRight: '0.5rem' }}>
+          {reoptimizing ? `Optimizando ${reoptimizeProgress.done}/${reoptimizeProgress.total}...` : '⚡ Optimizar fotos existentes'}
+        </button>
         <button onClick={onLogout} className="logout-button">
           Cerrar Sesión
         </button>
@@ -483,7 +542,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (image) => {
                     setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image } }))
-                  })}
+                  }, 1600)}
                 />
                 {pageData.hero.image && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
@@ -499,7 +558,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (image2) => {
                     setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image2 } }))
-                  })}
+                  }, 1600)}
                 />
                 {pageData.hero.image2 && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
@@ -515,7 +574,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (image3) => {
                     setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image3 } }))
-                  })}
+                  }, 1600)}
                 />
                 {pageData.hero.image3 && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
@@ -1035,7 +1094,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <div className="form-group">
                     <label>Foto (opcional)</label>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (photo) => { setPageData((prev: any) => { const t = prev.testimonials.map((tv: any, i: number) => i === editingTestimonialIdx ? { ...tv, photo } : tv); return { ...prev, testimonials: t } }) })} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (photo) => { setPageData((prev: any) => { const t = prev.testimonials.map((tv: any, i: number) => i === editingTestimonialIdx ? { ...tv, photo } : tv); return { ...prev, testimonials: t } }) }, 300)} />
                     {pageData.testimonials[editingTestimonialIdx].photo && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                         <img src={pageData.testimonials[editingTestimonialIdx].photo} alt="Foto" className="preview-image" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }} />
@@ -1115,7 +1174,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (photo) => {
                     setPageData((prev: any) => ({ ...prev, location: { ...prev.location, photo } }))
-                  })}
+                  }, 1000)}
                 />
                 {(pageData as any).location?.photo && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
@@ -1132,7 +1191,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
               <h2>Redes Sociales y Enlaces</h2>
               <div className="form-group">
                 <label>Logo de la Navbar</label>
-                <input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadDirect(f, (url) => setPageData((prev: any) => ({ ...prev, logo: url }))); e.target.value = '' }} />
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setPageData((prev: any) => ({ ...prev, logo: url })), 400)} />
                 {pageData.logo && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                     <img src={pageData.logo} alt="Logo" style={{ height: 50, objectFit: 'contain', background: '#f5f0e8', padding: '4px', borderRadius: '4px' }} />
@@ -1201,7 +1260,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (url) => {
                     setPageData((prev: any) => ({ ...prev, trajectoryCover: url }))
-                  })}
+                  }, 1600)}
                 />
                 {(pageData as any).trajectoryCover && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>

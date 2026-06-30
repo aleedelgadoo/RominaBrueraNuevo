@@ -34,7 +34,7 @@ const Location = ({ pageData }: LocationProps) => {
         <div className="location-side">
           <div className="location-photo-wrap">
             {photo ? (
-              <img src={photo} alt="Local" className="location-photo" />
+              <img src={photo} alt="Local" className="location-photo" loading="lazy" decoding="async" />
             ) : (
               <div className="location-photo-placeholder" />
             )}

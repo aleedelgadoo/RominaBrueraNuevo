@@ -27,7 +27,7 @@ const Trajectory = ({ onClose, pageData }: TrajectoryProps) => {
       <div className={`trajectory-hero${coverImage ? ' has-cover' : ''}`}>
         {coverImage && (
           <div className="traj-cover">
-            <img src={coverImage} alt="Mi Trayectoria" className="traj-cover-img" />
+            <img src={coverImage} alt="Mi Trayectoria" className="traj-cover-img" loading="eager" decoding="async" fetchPriority="high" />
             <div className="traj-cover-overlay" />
           </div>
         )}

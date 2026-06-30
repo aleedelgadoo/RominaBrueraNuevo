@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Lightbox from './Lightbox'
+import LazyBackground from './LazyBackground'
 import './SubServiceDetail.css'
 
 interface SubServiceDetailProps {
@@ -30,7 +31,7 @@ const SubServiceDetail = ({ subServiceId, parentServiceId, onClose, onGoHome, on
       <div className="subservice-detail-hero">
         <div className="subservice-detail-image-col">
           {subService.image ? (
-            <img src={subService.image} alt={subService.name} className="subservice-detail-image-real" />
+            <img src={subService.image} alt={subService.name} className="subservice-detail-image-real" loading="eager" decoding="async" fetchPriority="high" />
           ) : (
             <div className="subservice-detail-image-placeholder"></div>
           )}
@@ -69,10 +70,10 @@ const SubServiceDetail = ({ subServiceId, parentServiceId, onClose, onGoHome, on
             <h2 className="section-sub-title">PORTFOLIO</h2>
             <div className="portfolio-grid">
               {subService.portfolioImages.map((img: any) => (
-                <div
+                <LazyBackground
                   key={img.id}
                   className="portfolio-image-item"
-                  style={img.image ? { backgroundImage: `url(${img.image})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer' } : {}}
+                  src={img.image}
                   onClick={() => img.image && setLightboxSrc(img.image)}
                 />
               ))}

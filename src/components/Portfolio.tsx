@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Lightbox from './Lightbox'
+import LazyBackground from './LazyBackground'
 import './Portfolio.css'
 
 interface PortfolioProps {
@@ -19,7 +20,7 @@ const Portfolio = ({ pageData }: PortfolioProps) => {
         <div className="portfolio-grid">
           {items.map((item) => (
             <div key={item.id} className="portfolio-item" onClick={() => setLightboxSrc(item.image)}>
-              <div className="portfolio-image" style={{ backgroundImage: `url(${item.image})` }}></div>
+              <LazyBackground src={item.image} className="portfolio-image" />
             </div>
           ))}
         </div>

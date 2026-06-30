@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Lightbox from './Lightbox'
+import LazyBackground from './LazyBackground'
 import './CourseDetail.css'
 
 interface CourseDetailProps {
@@ -33,7 +34,7 @@ const CourseDetail = ({ courseId, onClose, onGoHome, onPortfolioClick, pageData 
       <div className="course-detail-hero">
         <div className="course-detail-image-col">
           {course.image ? (
-            <img src={course.image} alt={course.name} className="course-detail-image-real" />
+            <img src={course.image} alt={course.name} className="course-detail-image-real" loading="eager" decoding="async" fetchPriority="high" />
           ) : (
             <div className={`course-detail-image-placeholder course-placeholder-${course.id}`}></div>
           )}
@@ -74,12 +75,12 @@ const CourseDetail = ({ courseId, onClose, onGoHome, onPortfolioClick, pageData 
           <h2 className="section-sub-title">RESULTADOS</h2>
           <div className="portfolio-grid">
             {course.portfolioImages.map((img: any) => (
-              <div
+              <LazyBackground
                 key={img.id}
                 className="portfolio-image-item"
-                style={img.image ? { backgroundImage: `url(${img.image})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer' } : {}}
+                src={img.image}
                 onClick={() => img.image && setLightboxSrc(img.image)}
-              ></div>
+              />
             ))}
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Lightbox from './Lightbox'
+import LazyBackground from './LazyBackground'
 import './ServiceDetail.css'
 
 interface ServiceDetailProps {
@@ -43,7 +44,7 @@ const ServiceDetail = ({ serviceId, onClose, onSubServiceClick, onGoHome, onPort
       <div className="service-detail-hero">
         <div className="service-detail-image-col">
           {service.image ? (
-            <img src={service.image} alt={service.name} className="service-detail-image-real" />
+            <img src={service.image} alt={service.name} className="service-detail-image-real" loading="eager" decoding="async" fetchPriority="high" />
           ) : (
             <div className={`service-detail-image-placeholder service-placeholder-${service.id}`}></div>
           )}
@@ -95,10 +96,7 @@ const ServiceDetail = ({ serviceId, onClose, onSubServiceClick, onGoHome, onPort
                       className={`subservice-card${!isVisible ? ' hidden' : ''}`}
                       onClick={() => onSubServiceClick?.(sub.id, serviceId)}
                     >
-                      <div
-                        className="subservice-image"
-                        style={sub.image ? { backgroundImage: `url(${sub.image})` } : undefined}
-                      />
+                      <LazyBackground className="subservice-image" src={sub.image} />
                       <div className="subservice-info">
                         <h3 className="subservice-name">{sub.name}</h3>
                         {sub.mostrarDuracion && sub.duration && (
@@ -125,12 +123,12 @@ const ServiceDetail = ({ serviceId, onClose, onSubServiceClick, onGoHome, onPort
             <h2 className="section-sub-title">PORTFOLIO</h2>
             <div className="portfolio-grid">
               {service.portfolioImages.map((img: any) => (
-                <div
+                <LazyBackground
                   key={img.id}
                   className="portfolio-image-item"
-                  style={img.image ? { backgroundImage: `url(${img.image})`, backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer' } : {}}
+                  src={img.image}
                   onClick={() => img.image && setLightboxSrc(img.image)}
-                ></div>
+                />
               ))}
             </div>
           </div>
