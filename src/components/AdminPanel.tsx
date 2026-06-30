@@ -299,7 +299,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   const [reoptimizing, setReoptimizing] = useState(false)
   const [reoptimizeProgress, setReoptimizeProgress] = useState({ done: 0, total: 0 })
 
-  const resizeToBlob = (file: Blob, maxWidth = 1100, quality = 0.82): Promise<Blob> => {
+  const resizeToBlob = (file: Blob, maxWidth = 1300, quality = 0.9): Promise<Blob> => {
     const isPng = file.type === 'image/png'
     const mimeType = isPng ? 'image/png' : 'image/webp'
     return new Promise((resolve) => {
@@ -351,7 +351,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
-    Promise.all([resizeToBlob(file, 1300), resizeToBlob(file, 500)]).then(async ([desktopBlob, mobileBlob]) => {
+    Promise.all([resizeToBlob(file, 1800), resizeToBlob(file, 750)]).then(async ([desktopBlob, mobileBlob]) => {
       try {
         const ext = file.type === 'image/png' ? 'png' : 'webp'
         const baseName = file.name.replace(/[^a-z0-9]/gi, '_')
@@ -415,31 +415,31 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     const addHeroTask = (field: 'image' | 'image2' | 'image3') => {
       if (data.hero[field]) {
         const sourceUrl = data.hero[field]
-        tasks.push({ maxWidth: 1300, get: () => sourceUrl, set: (url: string) => { data.hero[field] = url } })
-        tasks.push({ maxWidth: 500, get: () => sourceUrl, set: (url: string) => { data.hero[`${field}Mobile`] = url } })
+        tasks.push({ maxWidth: 1800, get: () => sourceUrl, set: (url: string) => { data.hero[field] = url } })
+        tasks.push({ maxWidth: 750, get: () => sourceUrl, set: (url: string) => { data.hero[`${field}Mobile`] = url } })
       }
     }
 
     addHeroTask('image')
     addHeroTask('image2')
     addHeroTask('image3')
-    addTask(1100, () => data.about.image, (url) => { data.about.image = url })
-    addTask(400, () => data.logo, (url) => { data.logo = url })
-    addTask(1600, () => data.trajectoryCover, (url) => { data.trajectoryCover = url })
-    addTask(1000, () => data.location.photo, (url) => { data.location.photo = url })
-    data.portfolio.forEach((item: any) => addTask(800, () => item.image, (url) => { item.image = url }))
-    data.testimonials.forEach((t: any) => addTask(300, () => t.photo, (url) => { t.photo = url }))
+    addTask(1300, () => data.about.image, (url) => { data.about.image = url })
+    addTask(600, () => data.logo, (url) => { data.logo = url })
+    addTask(1800, () => data.trajectoryCover, (url) => { data.trajectoryCover = url })
+    addTask(1200, () => data.location.photo, (url) => { data.location.photo = url })
+    data.portfolio.forEach((item: any) => addTask(1000, () => item.image, (url) => { item.image = url }))
+    data.testimonials.forEach((t: any) => addTask(400, () => t.photo, (url) => { t.photo = url }))
     data.services.forEach((service: any) => {
-      addTask(1100, () => service.image, (url) => { service.image = url })
-      service.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
+      addTask(1300, () => service.image, (url) => { service.image = url })
+      service.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
       service.subServices.forEach((sub: any) => {
-        addTask(1100, () => sub.image, (url) => { sub.image = url })
-        sub.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
+        addTask(1300, () => sub.image, (url) => { sub.image = url })
+        sub.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
       })
     })
     data.courses.forEach((course: any) => {
-      addTask(1100, () => course.image, (url) => { course.image = url })
-      course.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
+      addTask(1300, () => course.image, (url) => { course.image = url })
+      course.portfolioImages.forEach((img: any) => addTask(1000, () => img.image, (url) => { img.image = url }))
     })
     return tasks
   }
@@ -479,16 +479,16 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   }
 
   const handleReoptimizeAll = () => runImagePass({
-    quality: 0.82,
+    quality: 0.9,
     forceReencode: false,
-    confirmMsg: 'Esto vuelve a comprimir todas las fotos ya subidas (y genera versiones livianas para celular en el Hero) para que el sitio cargue más rápido. Puede tardar varios minutos según la cantidad de fotos. ¿Continuar?',
+    confirmMsg: 'Esto comprime las fotos que todavía sean muy pesadas (y genera versiones livianas para celular en el Hero) para que el sitio cargue más rápido. Las fotos que ya estén livianas no se tocan. Si una foto ya quedó chica/borrosa de una optimización anterior, este botón NO le devuelve resolución: para eso hay que volver a subirla desde tu compu. ¿Continuar?',
     successVerb: 'optimizaron',
   })
 
   const handleBoostQuality = () => runImagePass({
-    quality: 0.93,
+    quality: 0.96,
     forceReencode: true,
-    confirmMsg: 'Esto vuelve a procesar todas las fotos con más calidad (van a pesar un poco más, sin cambiar su tamaño). No recupera detalle que ya se haya perdido al achicarlas, pero reduce los artefactos de compresión. Puede tardar varios minutos. ¿Continuar?',
+    confirmMsg: 'Esto vuelve a procesar todas las fotos con más calidad (van a pesar más, sin cambiar su tamaño). No recupera resolución que ya se haya perdido al achicarlas, pero reduce los artefactos de compresión. Puede tardar varios minutos. ¿Continuar?',
     successVerb: 'mejoraron en calidad',
   })
 
@@ -767,7 +767,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <label className="upload-label">
                     + Agregar foto al portfolio
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const s = prev.services.map((sv: any, i: number) => i === editingServiceIdx ? { ...sv, portfolioImages: [...sv.portfolioImages, { id: Date.now(), image }] } : sv); return { ...prev, services: s } }) }, 800)} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const s = prev.services.map((sv: any, i: number) => i === editingServiceIdx ? { ...sv, portfolioImages: [...sv.portfolioImages, { id: Date.now(), image }] } : sv); return { ...prev, services: s } }) }, 1000)} />
                   </label>
 
                   <h3 style={{ marginTop: '2rem' }}>Tarifas</h3>
@@ -917,7 +917,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                             </div>
                             <label className="upload-label">
                               + Agregar foto al portfolio
-                              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => updateSub({ portfolioImages: [...(currentSub.portfolioImages || []), { id: Date.now(), image }] }), 800)} />
+                              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => updateSub({ portfolioImages: [...(currentSub.portfolioImages || []), { id: Date.now(), image }] }), 1000)} />
                             </label>
 
                             <h4 style={{ marginTop: '1.5rem' }}>Tarifas del Sub-Servicio</h4>
@@ -1046,7 +1046,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <label className="upload-label">
                     + Agregar foto al portfolio
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, portfolioImages: [...cv.portfolioImages, { id: Date.now(), image }] } : cv); return { ...prev, courses: c } }) }, 800)} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, portfolioImages: [...cv.portfolioImages, { id: Date.now(), image }] } : cv); return { ...prev, courses: c } }) }, 1000)} />
                   </label>
 
                   <h3 style={{ marginTop: '2rem' }}>Tarifas</h3>
@@ -1128,7 +1128,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
               </div>
               <label className="upload-label">
                 + Agregar foto al portfolio
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => ({ ...prev, portfolio: [...prev.portfolio, { id: Date.now(), image }] })) }, 800)} />
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => ({ ...prev, portfolio: [...prev.portfolio, { id: Date.now(), image }] })) }, 1000)} />
               </label>
             </div>
           )}
@@ -1162,7 +1162,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <div className="form-group">
                     <label>Foto (opcional)</label>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (photo) => { setPageData((prev: any) => { const t = prev.testimonials.map((tv: any, i: number) => i === editingTestimonialIdx ? { ...tv, photo } : tv); return { ...prev, testimonials: t } }) }, 300)} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (photo) => { setPageData((prev: any) => { const t = prev.testimonials.map((tv: any, i: number) => i === editingTestimonialIdx ? { ...tv, photo } : tv); return { ...prev, testimonials: t } }) }, 400)} />
                     {pageData.testimonials[editingTestimonialIdx].photo && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                         <img src={pageData.testimonials[editingTestimonialIdx].photo} alt="Foto" className="preview-image" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover' }} />
@@ -1242,7 +1242,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (photo) => {
                     setPageData((prev: any) => ({ ...prev, location: { ...prev.location, photo } }))
-                  }, 1000)}
+                  }, 1200)}
                 />
                 {(pageData as any).location?.photo && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
@@ -1259,7 +1259,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
               <h2>Redes Sociales y Enlaces</h2>
               <div className="form-group">
                 <label>Logo de la Navbar</label>
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setPageData((prev: any) => ({ ...prev, logo: url })), 400)} />
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (url) => setPageData((prev: any) => ({ ...prev, logo: url })), 600)} />
                 {pageData.logo && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
                     <img src={pageData.logo} alt="Logo" style={{ height: 50, objectFit: 'contain', background: '#f5f0e8', padding: '4px', borderRadius: '4px' }} />
@@ -1328,7 +1328,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   accept="image/*"
                   onChange={(e) => handleImageUpload(e, (url) => {
                     setPageData((prev: any) => ({ ...prev, trajectoryCover: url }))
-                  }, 1600)}
+                  }, 1800)}
                 />
                 {(pageData as any).trajectoryCover && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
