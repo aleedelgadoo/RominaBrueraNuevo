@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import './Hero.css'
 
 interface HeroData {
@@ -8,6 +9,9 @@ interface HeroData {
   image: string
   image2?: string
   image3?: string
+  imageMobile?: string
+  image2Mobile?: string
+  image3Mobile?: string
 }
 
 interface HeroProps {
@@ -27,6 +31,17 @@ const Hero = ({ heroData }: HeroProps) => {
 
   const data = heroData || defaultData
 
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const photo1 = (isMobile && data.imageMobile) || data.image
+  const photo2 = (isMobile && data.image2Mobile) || data.image2
+  const photo3 = (isMobile && data.image3Mobile) || data.image3
+
   const handleButtonClick = () => {
     if (data.buttonLink.startsWith('#')) {
       const element = document.getElementById(data.buttonLink.substring(1))
@@ -41,15 +56,15 @@ const Hero = ({ heroData }: HeroProps) => {
       <div className="hero-photos">
         <div
           className="hero-photo"
-          style={data.image ? { backgroundImage: `url(${data.image})` } : undefined}
+          style={photo1 ? { backgroundImage: `url(${photo1})` } : undefined}
         />
         <div
           className="hero-photo"
-          style={data.image2 ? { backgroundImage: `url(${data.image2})` } : undefined}
+          style={photo2 ? { backgroundImage: `url(${photo2})` } : undefined}
         />
         <div
           className="hero-photo"
-          style={data.image3 ? { backgroundImage: `url(${data.image3})` } : undefined}
+          style={photo3 ? { backgroundImage: `url(${photo3})` } : undefined}
         />
       </div>
       <div className="hero-overlay" />

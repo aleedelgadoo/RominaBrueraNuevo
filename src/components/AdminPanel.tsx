@@ -85,6 +85,9 @@ interface PageData {
     image: string
     image2?: string
     image3?: string
+    imageMobile?: string
+    image2Mobile?: string
+    image3Mobile?: string
   }
   about: {
     title: string
@@ -296,7 +299,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   const [reoptimizing, setReoptimizing] = useState(false)
   const [reoptimizeProgress, setReoptimizeProgress] = useState({ done: 0, total: 0 })
 
-  const resizeToBlob = (file: Blob, maxWidth = 1100, quality = 0.82): Promise<Blob> => {
+  const resizeToBlob = (file: Blob, maxWidth = 1100, quality = 0.75): Promise<Blob> => {
     const isPng = file.type === 'image/png'
     const mimeType = isPng ? 'image/png' : 'image/webp'
     return new Promise((resolve) => {
@@ -342,6 +345,31 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
     })
   }
 
+  // Hero photos are full-bleed and shown on every visit, so we generate a small
+  // mobile variant alongside the desktop one instead of shipping the same large file to phones.
+  const handleHeroImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'image' | 'image2' | 'image3') => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    Promise.all([resizeToBlob(file, 1300), resizeToBlob(file, 500)]).then(async ([desktopBlob, mobileBlob]) => {
+      try {
+        const ext = file.type === 'image/png' ? 'png' : 'webp'
+        const baseName = file.name.replace(/[^a-z0-9]/gi, '_')
+        const [desktopUrl, mobileUrl] = await Promise.all([
+          uploadImage(desktopBlob, `${Date.now()}_${baseName}.${ext}`),
+          uploadImage(mobileBlob, `${Date.now()}_mobile_${baseName}.${ext}`),
+        ])
+        setPageData((prev: any) => ({ ...prev, hero: { ...prev.hero, [field]: desktopUrl, [`${field}Mobile`]: mobileUrl } }))
+        markAsChanged()
+      } catch (err: any) {
+        alert('Error al subir: ' + (err?.message || JSON.stringify(err)))
+      } finally {
+        setUploading(false)
+        e.target.value = ''
+      }
+    })
+  }
+
   const handleSave = async () => {
     try {
       await savePageData(pageData)
@@ -363,34 +391,42 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
   }
 
   const handleReoptimizeAll = async () => {
-    if (!confirm('Esto vuelve a comprimir todas las fotos ya subidas para que el sitio cargue más rápido. Puede tardar varios minutos según la cantidad de fotos. ¿Continuar?')) return
+    if (!confirm('Esto vuelve a comprimir todas las fotos ya subidas (y genera versiones livianas para celular en el Hero) para que el sitio cargue más rápido. Puede tardar varios minutos según la cantidad de fotos. ¿Continuar?')) return
 
     const data: any = JSON.parse(JSON.stringify(pageData))
     const tasks: Array<{ maxWidth: number; get: () => string | undefined; set: (url: string) => void }> = []
     const addTask = (maxWidth: number, get: () => string | undefined, set: (url: string) => void) => {
       if (get()) tasks.push({ maxWidth, get, set })
     }
+    // Hero photos also get a small mobile variant generated from the same source image
+    const addHeroTask = (field: 'image' | 'image2' | 'image3') => {
+      if (data.hero[field]) {
+        const sourceUrl = data.hero[field]
+        tasks.push({ maxWidth: 1300, get: () => sourceUrl, set: (url) => { data.hero[field] = url } })
+        tasks.push({ maxWidth: 500, get: () => sourceUrl, set: (url) => { data.hero[`${field}Mobile`] = url } })
+      }
+    }
 
-    addTask(1600, () => data.hero.image, (url) => { data.hero.image = url })
-    addTask(1600, () => data.hero.image2, (url) => { data.hero.image2 = url })
-    addTask(1600, () => data.hero.image3, (url) => { data.hero.image3 = url })
+    addHeroTask('image')
+    addHeroTask('image2')
+    addHeroTask('image3')
     addTask(1100, () => data.about.image, (url) => { data.about.image = url })
     addTask(400, () => data.logo, (url) => { data.logo = url })
     addTask(1600, () => data.trajectoryCover, (url) => { data.trajectoryCover = url })
     addTask(1000, () => data.location.photo, (url) => { data.location.photo = url })
-    data.portfolio.forEach((item: any) => addTask(1100, () => item.image, (url) => { item.image = url }))
+    data.portfolio.forEach((item: any) => addTask(800, () => item.image, (url) => { item.image = url }))
     data.testimonials.forEach((t: any) => addTask(300, () => t.photo, (url) => { t.photo = url }))
     data.services.forEach((service: any) => {
       addTask(1100, () => service.image, (url) => { service.image = url })
-      service.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+      service.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
       service.subServices.forEach((sub: any) => {
         addTask(1100, () => sub.image, (url) => { sub.image = url })
-        sub.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+        sub.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
       })
     })
     data.courses.forEach((course: any) => {
       addTask(1100, () => course.image, (url) => { course.image = url })
-      course.portfolioImages.forEach((img: any) => addTask(1100, () => img.image, (url) => { img.image = url }))
+      course.portfolioImages.forEach((img: any) => addTask(800, () => img.image, (url) => { img.image = url }))
     })
 
     setReoptimizing(true)
@@ -540,14 +576,12 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, (image) => {
-                    setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image } }))
-                  }, 1600)}
+                  onChange={(e) => handleHeroImageUpload(e, 'image')}
                 />
                 {pageData.hero.image && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
                     <img src={pageData.hero.image} alt="Hero 1" className="preview-image" />
-                    <button onClick={() => { setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
+                    <button onClick={() => { setPageData((prev: any) => ({ ...prev, hero: { ...prev.hero, image: '', imageMobile: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
                   </div>
                 )}
               </div>
@@ -556,14 +590,12 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, (image2) => {
-                    setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image2 } }))
-                  }, 1600)}
+                  onChange={(e) => handleHeroImageUpload(e, 'image2')}
                 />
                 {pageData.hero.image2 && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
                     <img src={pageData.hero.image2} alt="Hero 2" className="preview-image" />
-                    <button onClick={() => { setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image2: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
+                    <button onClick={() => { setPageData((prev: any) => ({ ...prev, hero: { ...prev.hero, image2: '', image2Mobile: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
                   </div>
                 )}
               </div>
@@ -572,14 +604,12 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => handleImageUpload(e, (image3) => {
-                    setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image3 } }))
-                  }, 1600)}
+                  onChange={(e) => handleHeroImageUpload(e, 'image3')}
                 />
                 {pageData.hero.image3 && (
                   <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
                     <img src={pageData.hero.image3} alt="Hero 3" className="preview-image" />
-                    <button onClick={() => { setPageData((prev) => ({ ...prev, hero: { ...prev.hero, image3: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
+                    <button onClick={() => { setPageData((prev: any) => ({ ...prev, hero: { ...prev.hero, image3: '', image3Mobile: '' } })); markAsChanged() }} className="delete-button">Quitar</button>
                   </div>
                 )}
               </div>
@@ -699,7 +729,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <label className="upload-label">
                     + Agregar foto al portfolio
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const s = prev.services.map((sv: any, i: number) => i === editingServiceIdx ? { ...sv, portfolioImages: [...sv.portfolioImages, { id: Date.now(), image }] } : sv); return { ...prev, services: s } }) })} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const s = prev.services.map((sv: any, i: number) => i === editingServiceIdx ? { ...sv, portfolioImages: [...sv.portfolioImages, { id: Date.now(), image }] } : sv); return { ...prev, services: s } }) }, 800)} />
                   </label>
 
                   <h3 style={{ marginTop: '2rem' }}>Tarifas</h3>
@@ -849,7 +879,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                             </div>
                             <label className="upload-label">
                               + Agregar foto al portfolio
-                              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => updateSub({ portfolioImages: [...(currentSub.portfolioImages || []), { id: Date.now(), image }] }))} />
+                              <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => updateSub({ portfolioImages: [...(currentSub.portfolioImages || []), { id: Date.now(), image }] }), 800)} />
                             </label>
 
                             <h4 style={{ marginTop: '1.5rem' }}>Tarifas del Sub-Servicio</h4>
@@ -978,7 +1008,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <label className="upload-label">
                     + Agregar foto al portfolio
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, portfolioImages: [...cv.portfolioImages, { id: Date.now(), image }] } : cv); return { ...prev, courses: c } }) })} />
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, portfolioImages: [...cv.portfolioImages, { id: Date.now(), image }] } : cv); return { ...prev, courses: c } }) }, 800)} />
                   </label>
 
                   <h3 style={{ marginTop: '2rem' }}>Tarifas</h3>
@@ -1060,7 +1090,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
               </div>
               <label className="upload-label">
                 + Agregar foto al portfolio
-                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => ({ ...prev, portfolio: [...prev.portfolio, { id: Date.now(), image }] })) })} />
+                <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => ({ ...prev, portfolio: [...prev.portfolio, { id: Date.now(), image }] })) }, 800)} />
               </label>
             </div>
           )}
