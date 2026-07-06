@@ -28,7 +28,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #FAFAF7;
+        background: #ffffff;
         transition: opacity 0.3s ease;
       }
       #page-loader img {
@@ -52,7 +52,7 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Hide the loader as soon as the prefetched page data resolves, but never
-      // let it stay on screen longer than 3s even if the request stalls.
+      // let it stay on screen longer than 4.2s even if the request stalls.
       var __pageLoaderHidden = false
       function __hidePageLoader() {
         if (__pageLoaderHidden) return
@@ -63,7 +63,7 @@
         setTimeout(function () { el.remove() }, 300)
       }
       window.__pageDataPromise.then(__hidePageLoader).catch(__hidePageLoader)
-      setTimeout(__hidePageLoader, 3000)
+      setTimeout(__hidePageLoader, 4200)
     </script>
   </body>
 </html>
