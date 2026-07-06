@@ -39,6 +39,7 @@ interface CourseData {
   duration: string
   description: string
   image: string
+  imageThumb?: string
   modalidad?: 'virtual' | 'presencial'
   objectives: string[]
   tarifas: Tarifa[]
@@ -358,6 +359,34 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
           uploadImage(mobileBlob, `${Date.now()}_mobile_${baseName}.${ext}`),
         ])
         setPageData((prev: any) => ({ ...prev, hero: { ...prev.hero, [field]: desktopUrl, [`${field}Mobile`]: mobileUrl } }))
+        markAsChanged()
+      } catch (err: any) {
+        alert('Error al subir: ' + (err?.message || JSON.stringify(err)))
+      } finally {
+        setUploading(false)
+        e.target.value = ''
+      }
+    })
+  }
+
+  // Course covers are shown small in the home carousel but full-size on the course detail
+  // page, so we generate a light thumbnail for the carousel alongside the full image.
+  const handleCourseCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    Promise.all([resizeToBlob(file, 1100), resizeToBlob(file, 600)]).then(async ([fullBlob, thumbBlob]) => {
+      try {
+        const ext = file.type === 'image/png' ? 'png' : 'webp'
+        const baseName = file.name.replace(/[^a-z0-9]/gi, '_')
+        const [fullUrl, thumbUrl] = await Promise.all([
+          uploadImage(fullBlob, `${Date.now()}_${baseName}.${ext}`),
+          uploadImage(thumbBlob, `${Date.now()}_thumb_${baseName}.${ext}`),
+        ])
+        setPageData((prev: any) => {
+          const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, image: fullUrl, imageThumb: thumbUrl } : cv)
+          return { ...prev, courses: c }
+        })
         markAsChanged()
       } catch (err: any) {
         alert('Error al subir: ' + (err?.message || JSON.stringify(err)))
@@ -904,7 +933,7 @@ const AdminPanel = ({ onLogout, onDataSaved }: AdminPanelProps) => {
                   </div>
                   <div className="form-group">
                     <label>Imagen del Curso</label>
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e, (image) => { setPageData((prev: any) => { const c = prev.courses.map((cv: any, i: number) => i === editingCourseIdx ? { ...cv, image } : cv); return { ...prev, courses: c } }) })} />
+                    <input type="file" accept="image/*" onChange={handleCourseCoverUpload} />
                     {pageData.courses[editingCourseIdx].image && <img src={pageData.courses[editingCourseIdx].image} alt="Course" className="preview-image" />}
                   </div>
 

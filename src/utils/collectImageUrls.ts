@@ -25,7 +25,7 @@ export function collectImageUrls(pageData: any): CollectedImageUrls {
     pageData.about?.image,
   )
   pageData.services?.forEach((service: any) => homeUrls.push(service.image))
-  pageData.courses?.forEach((course: any) => homeUrls.push(course.image))
+  pageData.courses?.forEach((course: any) => homeUrls.push(course.imageThumb || course.image))
   pageData.testimonials?.forEach((t: any) => homeUrls.push(t.photo))
   pageData.portfolio?.forEach((item: any) => homeUrls.push(item.image))
   homeUrls.push(pageData.location?.photo)
@@ -39,6 +39,8 @@ export function collectImageUrls(pageData: any): CollectedImageUrls {
     })
   })
   pageData.courses?.forEach((course: any) => {
+    // The full-size cover is only otherwise needed on the course detail page.
+    if (course.imageThumb) detailUrls.push(course.image)
     course.portfolioImages?.forEach((img: any) => detailUrls.push(img.image))
   })
   detailUrls.push(pageData.trajectoryCover)
